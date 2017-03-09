@@ -21,11 +21,6 @@ def calculate_returns(close_price, delay):
     return returns, delayed_returns
 
 def calculate_statistics(close_price, returns):
-    ## Calculate delayed mean##
-    mean_5 = []
-    for i in range(close_price.size - 5):
-        mean_5.append((close_price[i+5] + close_price[i]) / 2);
-
     print "max return: ", max(returns)
     print "min return: ", min(returns)
 
@@ -43,7 +38,17 @@ def calculate_statistics(close_price, returns):
     stdv = math.sqrt(var)
     print "Stdv : ", stdv
     print "Var : ", var
-    return mean_5, mean_price, mean_return, stdv
+    return mean_price, mean_return, stdv
+
+def calculate_moving_average(returns, num_of_terms):
+    moving_average = []
+    for i in range(num_of_terms, len(returns)):
+        mean = 0.0
+        for j in range(num_of_terms):
+            mean += returns[i - j]
+        mean = mean / num_of_terms
+        moving_average.append(mean)
+    return moving_average
 
 def calculate_means(data, num_of_samples, overlap):
     means = [] 
@@ -63,8 +68,9 @@ def main():
     df = pd.read_csv('moh.csv')
     close_price = df['Close']
     returns, delayed_returns = calculate_returns(close_price, 365)
-    mean_5, x, y, stdv = calculate_statistics(close_price, returns)
+    x, y, stdv = calculate_statistics(close_price, returns)
     means = calculate_means(close_price, 100, 50)
+    moving_average = calculate_moving_average(returns, 35)
     num_bins = 85
     x = np.arange(-10, 10, 0.001)
 
@@ -73,7 +79,7 @@ def main():
     for i in range(len(means)):
         axarr[0, 0].plot([means[i][1], means[i][2]], [means[i][0], means[i][0]])
     axarr[0, 0].set_title('Close Price')
-    axarr[0, 1].plot(mean_5)
+    axarr[0, 1].plot(moving_average)
     axarr[0, 1].set_title('Second mean')
     axarr[1, 0].plot(returns)
     axarr[1, 0].set_title('Returns')
