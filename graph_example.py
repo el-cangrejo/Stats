@@ -44,17 +44,34 @@ def calculate_statistics(close_price, returns):
     print "Stdv : ", stdv
     print "Var : ", var
     return mean_5, mean_price, mean_return, stdv
-    
+
+def calculate_means(data, num_of_samples, overlap):
+    means = [] 
+    for i in range(0, len(data), overlap):
+        mean = 0.0
+        count_start = i
+        count_end = i
+        for j in range(num_of_samples):
+            if (i + j < len(data)):
+                mean = mean + data[i + j]
+                count_end = count_end + 1
+        mean = mean / (count_end - count_start)
+        means.append([mean, count_start, count_end])
+    return means
+
 def main():
-    df = pd.read_csv('gi.csv')
-    
-    returns, delayed_returns = calculate_returns(df['Close'], 365)
-    mean_5, x, y, stdv = calculate_statistics(df['Close'], returns)
+    df = pd.read_csv('moh.csv')
+    close_price = df['Close']
+    returns, delayed_returns = calculate_returns(close_price, 365)
+    mean_5, x, y, stdv = calculate_statistics(close_price, returns)
+    means = calculate_means(close_price, 100, 50)
     num_bins = 85
     x = np.arange(-10, 10, 0.001)
 
     f, axarr = plt.subplots(2, 3)
     axarr[0, 0].plot(df['Close'])
+    for i in range(len(means)):
+        axarr[0, 0].plot([means[i][1], means[i][2]], [means[i][0], means[i][0]])
     axarr[0, 0].set_title('Close Price')
     axarr[0, 1].plot(mean_5)
     axarr[0, 1].set_title('Second mean')
@@ -65,6 +82,10 @@ def main():
     axarr[1, 1].plot(x, norm.pdf(x, loc=0, scale=stdv))
     axarr[1, 1].hist(returns, num_bins,normed=True, alpha=0.5)
     axarr[1, 1].set_title('Normal distr')
+    for i in range(len(means)):
+        axarr[0, 2].plot([means[i][1], means[i][2]], [means[i][0], means[i][0]])
+        
+    axarr[0, 2].set_title('Means')
     # Fine-tune figure; hide x ticks for top plots and y ticks for right plots
 #    plt.setp([a.get_xticklabels() for a in axarr[0, :]], visible=False)
 #    plt.setp([a.get_yticklabels() for a in axarr[:, 1]], visible=False)
